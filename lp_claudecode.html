@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code体験勉強会 | 専属コンシェルジュを育てて仕事に活かす</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS変数
+    ============================================================ */
+    :root {
+      --primary:       #0A3D6B;
+      --primary-mid:   #1565C0;
+      --primary-light: #1E88E5;
+      --accent:        #00BCD4;
+      --accent-dark:   #0097A7;
+      --accent-glow:   rgba(0, 188, 212, 0.30);
+      --bg:            #F5F7FA;
+      --white:         #FFFFFF;
+      --text:          #0D1B2A;
+      --text-muted:    #546E7A;
+      --border:        rgba(10, 61, 107, 0.12);
+      --shadow:        0 4px 24px rgba(10, 61, 107, 0.10);
+      --shadow-lg:     0 8px 40px rgba(10, 61, 107, 0.16);
+      --radius:        12px;
+      --radius-sm:     6px;
+      --radius-lg:     20px;
+    }
+
+    /* ============================================================
+       リセット・ベース
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.8;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* ============================================================
+       スクロールプログレスバー
+    ============================================================ */
+    .scroll-indicator {
+      position: fixed; top: 0; left: 0;
+      height: 3px;
+      background: var(--accent);
+      z-index: 200;
+      width: 0%;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* ============================================================
+       ナビゲーション
+    ============================================================ */
+    #mainNav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #mainNav.scrolled {
+      background: rgba(5, 27, 51, 0.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+    }
+    .nav-logo {
+      font-size: 0.95rem; font-weight: 700;
+      color: #fff; letter-spacing: 0.04em;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; list-style: none; gap: 28px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.75); font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: var(--accent);
+      color: #fff; font-size: 0.85rem; font-weight: 700;
+      padding: 10px 24px; border-radius: 50px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px var(--accent-glow); }
+
+    /* ============================================================
+       Hero
+    ============================================================ */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      background:
+        linear-gradient(135deg, rgba(5,27,51,0.82) 0%, rgba(10,61,107,0.72) 50%, rgba(0,188,212,0.18) 100%),
+        url('./hero-bg.jpg') center / cover no-repeat;
+      position: relative; overflow: hidden;
+      padding-top: 80px;
+    }
+    .blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); opacity: 0.14;
+      animation: blobFloat 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .blob-1 { width: 520px; height: 520px; background: var(--accent); top: -120px; right: -100px; }
+    .blob-2 { width: 320px; height: 320px; background: #3D5AFE; bottom: 40px; left: 40px; animation-delay: -4s; }
+    @keyframes blobFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%       { transform: translateY(-22px) scale(1.05); }
+    }
+    .hero-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 80px 24px;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0, 188, 212, 0.14);
+      border: 1px solid rgba(0, 188, 212, 0.32);
+      color: var(--accent);
+      font-size: 0.78rem; font-weight: 600;
+      padding: 6px 16px; border-radius: 50px;
+      letter-spacing: 0.09em;
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow .material-icons { font-size: 1rem; }
+    .hero h1 {
+      font-size: clamp(2rem, 4.5vw, 3.1rem);
+      font-weight: 700; line-height: 1.35;
+      color: #fff;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      margin-bottom: 14px;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero-sub {
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      color: rgba(255,255,255,0.70);
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      margin-bottom: 36px;
+    }
+    .hero-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 40px; }
+    .hero-meta-item {
+      display: flex; align-items: center; gap: 7px;
+      color: rgba(255,255,255,0.80); font-size: 0.88rem;
+    }
+    .hero-meta-item .material-icons { font-size: 1.05rem; color: var(--accent); }
+    .hero-cta-group { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 38px; border-radius: 50px;
+      background: var(--accent); color: #fff;
+      font-size: 1rem; font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0, 188, 212, 0.48); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 15px 30px; border-radius: 50px;
+      background: transparent; color: rgba(255,255,255,0.82);
+      font-size: 0.95rem; font-weight: 600;
+      border: 1.5px solid rgba(255,255,255,0.38);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.65); }
+
+    /* ============================================================
+       セクション共通
+    ============================================================ */
+    section { padding: 88px 0; }
+    .section-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .section-eyebrow {
+      display: inline-block;
+      color: var(--accent-dark);
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2.15rem);
+      font-weight: 700; line-height: 1.35;
+      margin-bottom: 14px;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    .section-title .accent { color: var(--accent-dark); }
+    .section-lead {
+      font-size: 0.975rem; color: var(--text-muted);
+      max-width: 600px; line-height: 1.85;
+      margin-bottom: 48px;
+    }
+    .text-center { text-align: center; }
+    .text-center .section-lead { margin-left: auto; margin-right: auto; }
+
+    /* ============================================================
+       ウェーブ区切り
+    ============================================================ */
+    .wave { line-height: 0; }
+    .wave svg { display: block; width: 100%; height: 80px; }
+
+    /* ============================================================
+       About
+    ============================================================ */
+    .about { background: var(--white); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .about-text p { color: var(--text-muted); margin-bottom: 18px; }
+    .about-text p:last-child { margin-bottom: 0; }
+    .about-highlights { display: flex; flex-direction: column; gap: 14px; }
+    .highlight-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      border-left: 3px solid var(--accent);
+    }
+    .highlight-item .material-icons { font-size: 1.4rem; color: var(--accent-dark); flex-shrink: 0; margin-top: 3px; }
+    .highlight-item strong { display: block; font-size: 0.92rem; margin-bottom: 3px; }
+    .highlight-item p { font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.7; }
+
+    /* ============================================================
+       Features（学べること）
+    ============================================================ */
+    .features { background: var(--bg); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 26px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .card-icon-wrap {
+      width: 50px; height: 50px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .card-icon-wrap .material-icons { font-size: 1.4rem; color: #fff; }
+    .card-tag {
+      display: inline-block;
+      background: rgba(0, 151, 167, 0.10);
+      color: var(--accent-dark);
+      font-size: 0.72rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 50px;
+      margin-bottom: 14px;
+      letter-spacing: 0.06em;
+    }
+    .card h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: 10px; word-break: keep-all; }
+    .card p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.78; }
+
+    /* ============================================================
+       Schedule
+    ============================================================ */
+    .schedule { background: var(--white); }
+    .timeline { position: relative; max-width: 700px; margin: 0 auto; }
+    .timeline::before {
+      content: '';
+      position: absolute; left: 68px; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--primary-mid));
+    }
+    .timeline-item { display: flex; gap: 28px; margin-bottom: 28px; position: relative; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-time {
+      width: 68px; flex-shrink: 0;
+      text-align: right;
+      font-size: 0.76rem; font-weight: 700;
+      color: var(--accent-dark);
+      padding-top: 14px;
+    }
+    .timeline-dot {
+      position: absolute; left: 62px; top: 16px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--white);
+      box-shadow: 0 0 0 2px var(--accent);
+      z-index: 1;
+    }
+    .timeline-content {
+      flex: 1;
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-left: 8px;
+    }
+    .timeline-content strong { display: block; font-size: 0.92rem; margin-bottom: 3px; }
+    .timeline-content p { font-size: 0.83rem; color: var(--text-muted); margin: 0; line-height: 1.65; }
+
+    /* ============================================================
+       Target
+    ============================================================ */
+    .target { background: linear-gradient(135deg, #051B33 0%, #0A3D6B 100%); color: #fff; }
+    .target .section-title { color: #fff; }
+    .target .section-title .accent { color: var(--accent); }
+    .target .section-eyebrow { color: var(--accent); }
+    .target .section-lead { color: rgba(255,255,255,0.62); }
+    .target-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .target-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+    }
+    .target-item .material-icons { font-size: 1.2rem; color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+    .target-item p { font-size: 0.88rem; color: rgba(255,255,255,0.82); margin: 0; line-height: 1.72; }
+
+    /* ============================================================
+       Speaker
+    ============================================================ */
+    .speaker { background: var(--bg); }
+    .speaker-card {
+      display: flex; gap: 48px; align-items: center;
+      max-width: 780px; margin: 0 auto;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 44px 48px;
+      box-shadow: var(--shadow);
+    }
+    .speaker-avatar {
+      width: 150px; height: 150px; flex-shrink: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .speaker-avatar .material-icons { font-size: 72px; color: rgba(255,255,255,0.55); }
+    .speaker-avatar img { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .speaker-info .role {
+      font-size: 0.74rem; font-weight: 700;
+      color: var(--accent-dark);
+      letter-spacing: 0.10em; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .speaker-info h3 { font-size: 1.45rem; font-weight: 700; margin-bottom: 10px; }
+    .speaker-info .speaker-title { font-size: 0.87rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.65; }
+    .speaker-info p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.82; }
+    .speaker-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .speaker-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 0.74rem; font-weight: 500;
+      padding: 4px 12px; border-radius: 50px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       FAQ
+    ============================================================ */
+    .faq { background: var(--white); }
+    .faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .faq-item { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .faq-q {
+      width: 100%; background: none; border: none;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; cursor: pointer; text-align: left;
+      font-family: inherit; font-size: 0.92rem; font-weight: 600;
+      color: var(--text);
+      transition: background 0.2s;
+    }
+    .faq-q:hover { background: var(--bg); }
+    .faq-q .material-icons { font-size: 1.15rem; color: var(--text-muted); transition: transform 0.3s; flex-shrink: 0; margin-left: 12px; }
+    .faq-item.open .faq-q .material-icons { transform: rotate(180deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.32s ease; }
+    .faq-a-inner { padding: 0 22px 18px; font-size: 0.86rem; color: var(--text-muted); line-height: 1.82; }
+    .faq-item.open .faq-a { max-height: 240px; }
+
+    /* ============================================================
+       CTA
+    ============================================================ */
+    .cta-section {
+      background: linear-gradient(135deg, #051B33 0%, #0A3D6B 60%, #007A8A 100%);
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-inner { position: relative; z-index: 1; }
+    .cta-section .section-eyebrow { color: var(--accent); }
+    .cta-section .section-title { color: #fff; }
+    .cta-section .section-title .accent { color: var(--accent); }
+    .cta-section .section-lead { color: rgba(255,255,255,0.62); margin-left: auto; margin-right: auto; margin-bottom: 36px; }
+    .cta-limit {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255, 213, 79, 0.14);
+      border: 1px solid rgba(255, 213, 79, 0.30);
+      color: #FFD54F;
+      font-size: 0.78rem; font-weight: 700;
+      padding: 6px 16px; border-radius: 50px;
+      margin-bottom: 22px;
+    }
+    .cta-limit .material-icons { font-size: 1rem; }
+    .cta-note { margin-top: 14px; font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+
+    /* ============================================================
+       フッター
+    ============================================================ */
+    footer {
+      background: #051B33;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+      padding: 28px 24px;
+      font-size: 0.78rem;
+    }
+
+    /* ============================================================
+       スクロールアニメーション
+    ============================================================ */
+    .fi { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fi.visible { opacity: 1; transform: translateY(0); }
+    .fi.delay-1 { transition-delay: 0.10s; }
+    .fi.delay-2 { transition-delay: 0.20s; }
+    .fi.delay-3 { transition-delay: 0.30s; }
+    .fi.delay-4 { transition-delay: 0.40s; }
+
+    /* ============================================================
+       ハートアイコン（CTAボタン用 / Uiverse.io catraco ベース）
+    ============================================================ */
+    .heart-container {
+      --heart-color: rgba(255, 255, 255, 0.95);
+      position: relative;
+      width: 26px; height: 26px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .heart-container .svg-container {
+      width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+    .heart-container .svg-outline,
+    .heart-container .svg-filled {
+      position: absolute;
+      width: 26px; height: 26px;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .heart-container .svg-outline  { fill: none; stroke: var(--heart-color); stroke-width: 1.4; }
+    .heart-container .svg-filled   { fill: var(--heart-color); opacity: 0; transform: scale(0.5); display: none; }
+    .heart-container .svg-celebrate {
+      position: absolute;
+      width: 42px; height: 42px;
+      stroke: var(--heart-color); stroke-width: 2px; stroke-linecap: round;
+      fill: none; opacity: 0; transform: scale(0.5); display: none;
+    }
+    .btn-primary:hover .heart-container .svg-outline { opacity: 0; transform: scale(0.5); }
+    .btn-primary:hover .heart-container .svg-filled {
+      display: block; opacity: 1;
+      animation: hcFilled 0.5s ease forwards;
+    }
+    .btn-primary:hover .heart-container .svg-celebrate {
+      display: block;
+      animation: hcCelebrate 0.55s ease forwards;
+      animation-delay: 0.05s;
+    }
+    @keyframes hcFilled {
+      0%   { transform: scale(0.5); }
+      40%  { transform: scale(1.3); filter: brightness(1.5); }
+      70%  { transform: scale(0.9); }
+      100% { transform: scale(1.1); }
+    }
+    @keyframes hcCelebrate {
+      0%   { opacity: 1; transform: scale(0.6); }
+      60%  { opacity: 0.8; filter: brightness(1.5); }
+      100% { opacity: 0; transform: scale(1.6); }
+    }
+    /* eyebrow用 小サイズ */
+    .heart-container.heart-sm { width: 18px; height: 18px; }
+    .heart-container.heart-sm .svg-outline,
+    .heart-container.heart-sm .svg-filled  { width: 18px; height: 18px; }
+    .heart-container.heart-sm .svg-celebrate { width: 28px; height: 28px; }
+    /* Hero eyebrow：常にfilled＋パルス */
+    .hero-eyebrow .heart-container .svg-outline { display: none; }
+    .hero-eyebrow .heart-container .svg-filled  {
+      display: block !important; opacity: 1 !important; transform: scale(1) !important;
+      animation: heartPulse 2.5s ease-in-out infinite !important;
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.28); filter: brightness(1.35); }
+    }
+
+    /* ============================================================
+       レスポンシブ
+    ============================================================ */
+    @media (max-width: 768px) {
+      #mainNav { padding: 14px 18px; }
+      .nav-links { display: none; }
+      section { padding: 56px 0; }
+      .hero h1 { font-size: clamp(1.75rem, 6vw, 2.2rem); }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .target-grid { grid-template-columns: 1fr; }
+      .speaker-card { flex-direction: column; gap: 24px; padding: 28px 22px; text-align: center; }
+      .speaker-tags { justify-content: center; }
+      .hero-cta-group { flex-direction: column; align-items: flex-start; }
+      .timeline::before { left: 58px; }
+      .timeline-time { width: 58px; font-size: 0.72rem; }
+      .timeline-dot { left: 52px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- プログレスバー -->
+<div class="scroll-indicator" id="scrollBar"></div>
+
+<!-- ナビゲーション -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo">Claude<span>Code</span> 勉強会</a>
+  <ul class="nav-links">
+    <li><a href="#about">概要</a></li>
+    <li><a href="#learn">学べること</a></li>
+    <li><a href="#schedule">スケジュール</a></li>
+    <li><a href="#speaker">講師</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">申し込む</a>
+</nav>
+
+
+<!-- ===== Hero ===== -->
+<section class="hero" id="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="hero-inner fi">
+    <p class="hero-eyebrow"><span class="heart-container heart-sm"><span class="svg-container"><svg class="svg-filled" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" fill="rgba(0,188,212,0.95)"/></svg></span></span>非エンジニア向け 体験型ハンズオン勉強会</p>
+    <h1>コードが書けなくても、<br><span class="accent">自分専用ツール</span>が作れる。<br>Claude Code 体験勉強会</h1>
+    <p class="hero-sub">専属コンシェルジュ — Claude Code を育てて、仕事に活かす</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><span class="material-icons">calendar_today</span>2026年2月24日（火）</div>
+      <div class="hero-meta-item"><span class="material-icons">schedule</span>13:00 〜 16:00</div>
+      <div class="hero-meta-item"><span class="material-icons">video_call</span>オンライン（Zoom）</div>
+      <div class="hero-meta-item"><span class="material-icons">group</span>定員 10 名</div>
+      <div class="hero-meta-item"><span class="material-icons">local_offer</span>参加無料</div>
+    </div>
+    <div class="hero-cta-group">
+      <a href="#cta" class="btn-primary"><span class="material-icons">edit</span>参加を申し込む</a>
+      <a href="#about" class="btn-secondary"><span class="material-icons">expand_more</span>詳細を見る</a>
+    </div>
+  </div>
+</section>
+
+<!-- wave: hero → about -->
+<div class="wave" style="background: linear-gradient(135deg, #051B33, #0D5A9C);">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,20 1440,36 L1440,80 L0,80 Z" fill="#FFFFFF"/>
+  </svg>
+</div>
+
+
+<!-- ===== About ===== -->
+<section class="about" id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-text fi">
+        <p class="section-eyebrow">About</p>
+        <h2 class="section-title">「AIって便利そうだけど、<br><span class="accent">自分には難しそう</span>」<br>そう思っていませんか？</h2>
+        <p>Claude Code は、Anthropic が開発した対話型のコーディング AI です。でも、使い方はエンジニアだけのものではありません。</p>
+        <p>この勉強会では、コードを書いたことがない方でも、Claude Code を「専属コンシェルジュ」として育てながら、自分の業務に使えるツールを実際に作る体験ができます。</p>
+        <p>「見て学ぶ」ではなく「手を動かして学ぶ」ハンズオン形式。当日その場で、動くものを完成させましょう。</p>
+      </div>
+      <div class="about-highlights fi delay-2">
+        <div class="highlight-item">
+          <span class="material-icons">laptop_mac</span>
+          <div>
+            <strong>完全ハンズオン形式</strong>
+            <p>講義を聞くだけでなく、参加者自身がその場で作業します</p>
+          </div>
+        </div>
+        <div class="highlight-item">
+          <span class="material-icons">code_off</span>
+          <div>
+            <strong>コーディング知識は一切不要</strong>
+            <p>「プログラミングって何？」というところから始められます</p>
+          </div>
+        </div>
+        <div class="highlight-item">
+          <span class="material-icons">build_circle</span>
+          <div>
+            <strong>当日に動くものが完成する</strong>
+            <p>終了後すぐに業務で使えるツールを持ち帰れます</p>
+          </div>
+        </div>
+        <div class="highlight-item">
+          <span class="material-icons">support_agent</span>
+          <div>
+            <strong>少人数制・サポート充実</strong>
+            <p>定員 10 名。困ったらすぐ講師に聞ける環境です</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: about → features -->
+<div class="wave" style="background: var(--white);">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,50 C240,10 480,70 720,40 C960,10 1200,60 1440,30 L1440,80 L0,80 Z" fill="#F5F7FA"/>
+  </svg>
+</div>
+
+
+<!-- ===== Features ===== -->
+<section class="features" id="learn">
+  <div class="section-inner text-center">
+    <p class="section-eyebrow fi">What you'll learn</p>
+    <h2 class="section-title fi delay-1">この勉強会で<span class="accent">学べること</span></h2>
+    <p class="section-lead fi delay-2">3 つのテーマを軸に、Claude Code を仕事で使いこなすための基礎から応用まで体験します。</p>
+    <div class="grid-3">
+      <div class="card fi delay-1">
+        <div class="card-icon-wrap"><span class="material-icons">psychology</span></div>
+        <span class="card-tag">01 / 基礎理解</span>
+        <h3>Claude Code とは何か</h3>
+        <p>AI との「会話の仕方」を学びます。どんな指示を出せば思い通りに動くか、コンシェルジュとして育てるコツを体験しながら身につけます。</p>
+      </div>
+      <div class="card fi delay-2">
+        <div class="card-icon-wrap"><span class="material-icons">terminal</span></div>
+        <span class="card-tag">02 / 実践体験</span>
+        <h3>実際に手を動かして作る</h3>
+        <p>勉強会の中で自分専用の小さなツールを実際に作成します。「動いた！」という感覚を体験することで、活用イメージが一気に広がります。</p>
+      </div>
+      <div class="card fi delay-3">
+        <div class="card-icon-wrap"><span class="material-icons">rocket_launch</span></div>
+        <span class="card-tag">03 / 業務応用</span>
+        <h3>自分の仕事への活かし方</h3>
+        <p>作ったものをどう日常業務に組み込むか。自動化・効率化・情報整理など、自分のシーンに合わせた活用アイデアを持ち帰れます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: features → schedule -->
+<div class="wave" style="background: #F5F7FA;">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,30 C360,70 720,10 1080,50 C1260,68 1380,22 1440,38 L1440,80 L0,80 Z" fill="#FFFFFF"/>
+  </svg>
+</div>
+
+
+<!-- ===== Schedule ===== -->
+<section class="schedule" id="schedule">
+  <div class="section-inner">
+    <div class="text-center">
+      <p class="section-eyebrow fi">Schedule</p>
+      <h2 class="section-title fi delay-1">当日の<span class="accent">タイムテーブル</span></h2>
+      <p class="section-lead fi delay-2">3 時間のコンパクトなプログラム。休憩を挟みながら無理なく進めます。</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item fi">
+        <div class="timeline-time">13:00</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>オープニング・自己紹介</strong>
+          <p>参加者どうしの簡単な自己紹介と、本日の流れの説明</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-1">
+        <div class="timeline-time">13:15</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>Claude Code とは？ セットアップ</strong>
+          <p>インストール〜基本操作までを一緒に進めます。つまずいても大丈夫</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-2">
+        <div class="timeline-time">14:00</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>ハンズオン：自分専用ツールを作る</strong>
+          <p>テーマに沿って実際に Claude Code を操作。動くものを完成させます</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-1">
+        <div class="timeline-time">15:00</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>休憩 10 分</strong>
+          <p>一息つきましょう</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-2">
+        <div class="timeline-time">15:10</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>業務活用アイデアシェア</strong>
+          <p>参加者どうしで「こんな使い方ができそう」を共有するワーク</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-3">
+        <div class="timeline-time">15:45</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>Q&amp;A・クロージング</strong>
+          <p>質問タイム。次のアクションを決めて終了</p>
+        </div>
+      </div>
+      <div class="timeline-item fi delay-4">
+        <div class="timeline-time">16:00</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <strong>終了</strong>
+          <p>お疲れさまでした</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: schedule → target -->
+<div class="wave" style="background: #FFFFFF;">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,45 C280,5 560,75 840,35 C1120,-5 1300,65 1440,40 L1440,80 L0,80 Z" fill="#051B33"/>
+  </svg>
+</div>
+
+
+<!-- ===== Target ===== -->
+<section class="target" id="target">
+  <div class="section-inner">
+    <div class="text-center">
+      <p class="section-eyebrow fi">Target</p>
+      <h2 class="section-title fi delay-1">こんな方に<span class="accent">来てほしい</span></h2>
+      <p class="section-lead fi delay-2">プログラミング経験は一切不要です。「AI を仕事に活かしたい」という気持ちだけ持ってきてください。</p>
+    </div>
+    <div class="target-grid">
+      <div class="target-item fi delay-1">
+        <span class="material-icons">check_circle</span>
+        <p>AI に興味はあるけど、何から始めればいいかわからない</p>
+      </div>
+      <div class="target-item fi delay-2">
+        <span class="material-icons">check_circle</span>
+        <p>コードを書いたことはないが、自分専用ツールを作ってみたい</p>
+      </div>
+      <div class="target-item fi delay-1">
+        <span class="material-icons">check_circle</span>
+        <p>業務の繰り返し作業を自動化・効率化したいと思っている</p>
+      </div>
+      <div class="target-item fi delay-2">
+        <span class="material-icons">check_circle</span>
+        <p>ChatGPT は使ったことがあるが、もっと深く活用したい</p>
+      </div>
+      <div class="target-item fi delay-1">
+        <span class="material-icons">check_circle</span>
+        <p>副業や独立に向けて、AI スキルを身につけておきたい</p>
+      </div>
+      <div class="target-item fi delay-2">
+        <span class="material-icons">check_circle</span>
+        <p>「自分には無理」と思っているが、一度チャレンジしてみたい</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: target → speaker -->
+<div class="wave" style="background: #051B33;">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,50 C360,10 720,70 1080,30 C1260,10 1380,60 1440,40 L1440,80 L0,80 Z" fill="#F5F7FA"/>
+  </svg>
+</div>
+
+
+<!-- ===== Speaker ===== -->
+<section class="speaker" id="speaker">
+  <div class="section-inner">
+    <div class="text-center">
+      <p class="section-eyebrow fi">Speaker</p>
+      <h2 class="section-title fi delay-1"><span class="accent">講師</span>紹介</h2>
+    </div>
+    <div class="speaker-card fi delay-2">
+      <div class="speaker-avatar">
+        <!-- 写真ファイルを speaker.jpg というファイル名で lp_claudecode.html と同じフォルダに保存すると表示されます -->
+        <img src="./speaker.jpg" alt="いわせみえ" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <span class="material-icons" style="display:none;">person</span>
+      </div>
+      <div class="speaker-info">
+        <p class="role">Lecturer</p>
+        <h3>いわせみえ</h3>
+        <p class="speaker-title">初心者向け自動化コーチ</p>
+        <p>分からない言葉は、分かりやすく。<br>知らないことは、丁寧に紐解きます。
+        </p>
+        <div class="speaker-tags">
+          <span class="speaker-tag">Claude Code</span>
+          <span class="speaker-tag">業務自動化</span>
+          <span class="speaker-tag">非エンジニア向け AI 活用</span>
+          <span class="speaker-tag">ハンズオン指導</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: speaker → faq -->
+<div class="wave" style="background: #F5F7FA;">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,35 C240,75 480,5 720,45 C960,80 1200,15 1440,45 L1440,80 L0,80 Z" fill="#FFFFFF"/>
+  </svg>
+</div>
+
+
+<!-- ===== FAQ ===== -->
+<section class="faq" id="faq">
+  <div class="section-inner">
+    <div class="text-center">
+      <p class="section-eyebrow fi">FAQ</p>
+      <h2 class="section-title fi delay-1">よくある<span class="accent">質問</span></h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item fi">
+        <button class="faq-q">プログラミングの知識は必要ですか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">まったく不要です。「コード」「ターミナル」という言葉を聞いたことがない方でも問題ありません。ゼロから一緒に進めます。</div></div>
+      </div>
+      <div class="faq-item fi delay-1">
+        <button class="faq-q">当日必要なものはありますか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">インターネットに接続できる PC をご用意ください（Mac / Windows どちらでも可）。スマートフォンのみでの参加はできません。事前のインストール等は不要で、当日一緒に進めます。</div></div>
+      </div>
+      <div class="faq-item fi delay-2">
+        <button class="faq-q">オンライン開催ですか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">はい、Zoom を使ったオンライン開催です。申し込み後に Zoom URL をお送りします。</div></div>
+      </div>
+      <div class="faq-item fi delay-1">
+        <button class="faq-q">定員はありますか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">少人数制で定員 10 名です。一人ひとりにしっかりサポートするため、早めの申し込みをおすすめします。</div></div>
+      </div>
+      <div class="faq-item fi delay-2">
+        <button class="faq-q">参加費はかかりますか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">参加費は無料です。お気軽にご参加ください。</div></div>
+      </div>
+      <div class="faq-item fi delay-3">
+        <button class="faq-q">当日に遅刻・途中退出はできますか？<span class="material-icons">expand_more</span></button>
+        <div class="faq-a"><div class="faq-a-inner">ハンズオン形式のため、できる限り最初からご参加いただくことをお願いしています。やむを得ない場合はご相談ください。</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- wave: faq → cta -->
+<div class="wave" style="background: #FFFFFF;">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,20 1440,35 L1440,80 L0,80 Z" fill="#051B33"/>
+  </svg>
+</div>
+
+
+<!-- ===== CTA ===== -->
+<section class="cta-section" id="cta">
+  <div class="blob" style="width:420px;height:420px;background:var(--accent);top:-120px;right:-80px;opacity:0.11;animation:blobFloat 8s ease-in-out infinite;"></div>
+  <div class="blob" style="width:260px;height:260px;background:#3D5AFE;bottom:0;left:80px;animation-delay:-3s;opacity:0.11;animation:blobFloat 8s ease-in-out infinite;animation-delay:-3s;"></div>
+  <div class="section-inner cta-inner">
+    <div class="fi">
+      <p class="section-eyebrow">Apply</p>
+      <div class="cta-limit"><span class="material-icons">notifications_active</span>定員残りわずか</div>
+      <h2 class="section-title"><span class="accent">Claude Code を育てる</span>、<br>その第一歩を踏み出そう。</h2>
+      <p class="section-lead">「難しそう」は、やってみる前の感想。<br>思い込みから解放されて、<br>当日はゼロから一緒に動くものを作りましょう。</p>
+      <a href="#" class="btn-primary" style="font-size:1.05rem; padding: 18px 48px;">
+        <div class="heart-container">
+          <div class="svg-container">
+            <svg class="svg-outline" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+            <svg class="svg-filled"  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+            <svg class="svg-celebrate" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <line x1="21" y1="2"  x2="21" y2="7"/><line x1="21" y1="35" x2="21" y2="40"/>
+              <line x1="2"  y1="21" x2="7"  y2="21"/><line x1="35" y1="21" x2="40" y2="21"/>
+              <line x1="7"  y1="7"  x2="11" y2="11"/><line x1="31" y1="7"  x2="35" y2="11"/>
+              <line x1="7"  y1="35" x2="11" y2="31"/><line x1="31" y1="35" x2="35" y2="31"/>
+            </svg>
+          </div>
+        </div>Claude Code を、わたしの専属コンシェルジュにする
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- フッター -->
+<footer>
+  <p>&copy; 2026 Claude Code 勉強会. All rights reserved.</p>
+</footer>
+
+
+<script>
+  // スクロールプログレスバー
+  const scrollBar = document.getElementById('scrollBar');
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+    scrollBar.style.width = pct + '%';
+  }, { passive: true });
+
+  // ナビゲーション
+  const mainNav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    mainNav.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+  // スクロールアニメーション
+  document.addEventListener('DOMContentLoaded', () => {
+    const items = Array.from(document.querySelectorAll('.fi'));
+    const show = el => el.classList.add('visible');
+    if (!('IntersectionObserver' in window)) { items.forEach(show); return; }
+    const io = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { show(entry.target); observer.unobserve(entry.target); }
+      });
+    }, { threshold: 0.06 });
+    items.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.92) show(el);
+      else io.observe(el);
+    });
+  });
+
+  // FAQ アコーディオン
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
